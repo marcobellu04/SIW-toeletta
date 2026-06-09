@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Genera fasce')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container container-sm">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="form-card">
+        <h2>Genera fasce orarie</h2>
+
+        <form th:action="@{/admin/fasce-orarie/genera}" method="post">
+            <div class="form-group">
+                <label for="toelettatoreId">Toelettatore</label>
+                <select id="toelettatoreId" name="toelettatoreId" required class="form-control">
+                    <option value="">Seleziona toelettatore</option>
+                    <option th:each="t : ${toelettatori}"
+                            th:value="${t.id}"
+                            th:text="${t.nome + ' ' + t.cognome}">
+                        Mario Rossi
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dataInizio">Dal</label>
+                    <input id="dataInizio" type="date" name="dataInizio" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="dataFine">Al</label>
+                    <input id="dataFine" type="date" name="dataFine" required class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Giorni lavorativi</label>
+
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="MONDAY"> Lunedì
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="TUESDAY"> Martedì
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="WEDNESDAY"> Mercoledì
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="THURSDAY"> Giovedì
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="FRIDAY"> Venerdì
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="SATURDAY"> Sabato
+                </label>
+                <label class="checkbox-line">
+                    <input type="checkbox" name="giorni" value="SUNDAY"> Domenica
+                </label>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="oraInizio">Ora inizio</label>
+                    <input id="oraInizio" type="time" name="oraInizio" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="oraFine">Ora fine</label>
+                    <input id="oraFine" type="time" name="oraFine" required class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="durataMinuti">Durata slot</label>
+                <select id="durataMinuti" name="durataMinuti" required class="form-control">
+                    <option value="30">30 minuti</option>
+                    <option value="45">45 minuti</option>
+                    <option value="60" selected>60 minuti</option>
+                    <option value="90">90 minuti</option>
+                </select>
+            </div>
+
+            <div class="action-group">
+                <button type="submit" class="btn btn-primary">Genera fasce</button>
+                <a th:href="@{/admin/fasce-orarie}" class="btn btn-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

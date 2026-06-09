@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Accesso negato')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container container-sm">
+    <div class="form-card" style="text-align: center;">
+        <h2>Accesso negato</h2>
+
+        <p class="lead">
+            Non hai i permessi per accedere a questa pagina.
+        </p>
+
+        <div class="quick-links">
+            <a th:href="@{/}" class="btn btn-primary">Torna alla home</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

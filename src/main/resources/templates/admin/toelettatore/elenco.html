@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestione toelettatori')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Gestione toelettatori</h1>
+            <p class="lead">Gestisci personale, contatti e specializzazioni.</p>
+        </div>
+
+        <a th:href="@{/admin/toelettatori/nuovo}" class="btn btn-primary">Nuovo toelettatore</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(toelettatori)}" class="empty-state">
+        <p>Non ci sono ancora toelettatori.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(toelettatori)}" class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Telefono</th>
+                <th>Specializzazione</th>
+                <th>Attivo</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="t : ${toelettatori}">
+                <td th:text="${t.nome + ' ' + t.cognome}">Mario Rossi</td>
+                <td th:text="${t.telefono}">3331234567</td>
+                <td th:text="${t.specializzazione != null ? t.specializzazione : '-'}">Taglio pelo</td>
+                <td>
+                    <span class="badge" th:if="${t.attivo}">Sì</span>
+                    <span class="badge" th:unless="${t.attivo}">No</span>
+                </td>
+                <td>
+                    <div class="action-group">
+                        <a th:href="@{/admin/toelettatori/{id}/modifica(id=${t.id})}"
+                           class="btn btn-secondary btn-sm">Modifica</a>
+
+                        <form th:action="@{/admin/toelettatori/{id}/elimina(id=${t.id})}"
+                              method="post"
+                              class="inline-form"
+                              onsubmit="return confirm('Eliminare questo toelettatore?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

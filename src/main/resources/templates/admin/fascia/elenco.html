@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Fasce orarie')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Fasce orarie</h1>
+            <p class="lead">Gestisci gli slot disponibili per le prenotazioni.</p>
+        </div>
+
+		<div class="action-group">
+		    <a th:href="@{/admin/fasce-orarie/genera}" class="btn btn-primary">Genera fasce</a>
+		    <a th:href="@{/admin/fasce-orarie/nuova}" class="btn btn-secondary">Nuova singola</a>
+		</div>
+
+    <div th:if="${#lists.isEmpty(fasce)}" class="empty-state">
+        <p>Non ci sono ancora fasce orarie.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(fasce)}" class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Orario</th>
+                <th>Toelettatore</th>
+                <th>Disponibile</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="f : ${fasce}">
+                <td th:text="${#temporals.format(f.data, 'dd/MM/yyyy')}">01/06/2026</td>
+                <td>
+                    <span th:text="${#temporals.format(f.oraInizio, 'HH:mm')}">09:00</span>
+                    -
+                    <span th:text="${#temporals.format(f.oraFine, 'HH:mm')}">10:00</span>
+                </td>
+                <td th:text="${f.toelettatore.nome + ' ' + f.toelettatore.cognome}">Mario Rossi</td>
+                <td>
+                    <span class="badge" th:if="${f.disponibile}">Sì</span>
+                    <span class="badge" th:unless="${f.disponibile}">No</span>
+                </td>
+                <td>
+                    <div class="action-group">
+                        <a th:href="@{/admin/fasce-orarie/{id}/modifica(id=${f.id})}"
+                           class="btn btn-secondary btn-sm">Modifica</a>
+
+                        <form th:action="@{/admin/fasce-orarie/{id}/elimina(id=${f.id})}"
+                              method="post"
+                              class="inline-form"
+                              onsubmit="return confirm('Eliminare questa fascia oraria?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

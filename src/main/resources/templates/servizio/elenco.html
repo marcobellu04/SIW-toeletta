@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Servizi')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Servizi</h1>
+            <p class="lead">Consulta i trattamenti disponibili e prenota quello più adatto al tuo cane.</p>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(servizi)}" class="empty-state">
+        <p>Non ci sono ancora servizi disponibili.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(servizi)}" class="card-grid">
+        <div th:each="s : ${servizi}" class="card">
+            <h3 th:text="${s.nome}">Bagno completo</h3>
+
+            <p class="card-desc" th:text="${s.descrizione}">
+                Descrizione del servizio
+            </p>
+
+            <p>
+                <span class="badge" th:text="${s.durataMinuti + ' minuti'}">
+                    45 minuti
+                </span>
+            </p>
+
+            <p style="margin-top: .6rem;">
+                <strong>Prezzo:</strong>
+                <span th:text="${s.prezzoBase + ' euro'}">25 euro</span>
+            </p>
+
+            <p style="margin-top: .4rem;">
+                <span th:if="${s.attivo}" class="badge">Disponibile</span>
+                <span th:unless="${s.attivo}" class="badge">Non disponibile</span>
+            </p>
+
+            <div class="card-actions" style="margin-top: 1rem;" th:if="${s.attivo}">
+                <a th:href="@{/prenotazioni/nuova(servizioId=${s.id})}"
+                   class="btn btn-primary btn-sm">
+                    Prenota
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

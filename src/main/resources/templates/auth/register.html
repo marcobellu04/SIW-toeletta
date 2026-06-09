@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registrati')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container container-sm">
+    <div class="form-card">
+        <h2>Crea account</h2>
+
+        <div th:if="${errore}" class="alert alert-error" th:text="${errore}"></div>
+
+        <form th:action="@{/auth/register}" method="post" th:object="${utente}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username"
+                       type="text"
+                       th:field="*{username}"
+                       required
+                       autofocus
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password"
+                       type="password"
+                       th:field="*{password}"
+                       required
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="confermaPassword">Conferma password</label>
+                <input id="confermaPassword"
+                       type="password"
+                       name="confermaPassword"
+                       required
+                       class="form-control">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input id="nome"
+                           type="text"
+                           th:field="*{nome}"
+                           required
+                           class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="cognome">Cognome</label>
+                    <input id="cognome"
+                           type="text"
+                           th:field="*{cognome}"
+                           required
+                           class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email"
+                       type="email"
+                       th:field="*{email}"
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="telefono">Telefono</label>
+                <input id="telefono"
+                       type="text"
+                       th:field="*{telefono}"
+                       class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Registrati</button>
+        </form>
+
+        <p class="form-footer">
+            Hai già un account?
+            <a th:href="@{/auth/login}">Accedi</a>
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

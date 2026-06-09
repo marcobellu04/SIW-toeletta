@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gestione servizi')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Gestione servizi</h1>
+            <p class="lead">Modifica i trattamenti disponibili per gli utenti.</p>
+        </div>
+
+        <a th:href="@{/admin/servizi/nuovo}" class="btn btn-primary">Nuovo servizio</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(servizi)}" class="empty-state">
+        <p>Non ci sono ancora servizi.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(servizi)}" class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Durata</th>
+                <th>Prezzo</th>
+                <th>Attivo</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="s : ${servizi}">
+                <td th:text="${s.nome}">Bagno</td>
+                <td th:text="${s.durataMinuti + ' min'}">45 min</td>
+                <td th:text="${s.prezzoBase + ' euro'}">25 euro</td>
+                <td>
+                    <span class="badge" th:if="${s.attivo}">Sì</span>
+                    <span class="badge" th:unless="${s.attivo}">No</span>
+                </td>
+                <td>
+                    <div class="action-group">
+                        <a th:href="@{/admin/servizi/{id}/modifica(id=${s.id})}"
+                           class="btn btn-secondary btn-sm">Modifica</a>
+
+                        <form th:action="@{/admin/servizi/{id}/elimina(id=${s.id})}"
+                              method="post"
+                              class="inline-form"
+                              onsubmit="return confirm('Eliminare questo servizio?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

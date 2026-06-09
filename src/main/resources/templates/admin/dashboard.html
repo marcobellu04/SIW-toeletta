@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Pannello admin</h1>
+            <p class="lead">Area di gestione del sito ZampePulite.</p>
+        </div>
+    </div>
+
+    <section class="feature-list">
+        <a th:href="@{/admin/servizi}" class="feature-item">
+            <h3>Servizi</h3>
+            <p>Crea, modifica o disattiva i trattamenti disponibili.</p>
+        </a>
+
+        <a th:href="@{/admin/toelettatori}" class="feature-item">
+            <h3>Toelettatori</h3>
+            <p>Gestisci personale, contatti e specializzazioni.</p>
+        </a>
+
+        <a th:href="@{/admin/fasce-orarie}" class="feature-item">
+            <h3>Fasce orarie</h3>
+            <p>Gestisci gli slot disponibili per le prenotazioni.</p>
+        </a>
+
+        <a th:href="@{/admin/prenotazioni}" class="feature-item">
+            <h3>Prenotazioni</h3>
+            <p>Controlla gli appuntamenti confermati e annullati.</p>
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

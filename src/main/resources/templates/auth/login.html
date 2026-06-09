@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Accedi')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container container-sm">
+    <div class="form-card">
+        <h2>Accedi</h2>
+
+        <div th:if="${errore}" class="alert alert-error" th:text="${errore}"></div>
+        <div th:if="${successo}" class="alert alert-success" th:text="${successo}"></div>
+
+        <form th:action="@{/auth/login}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username"
+                       type="text"
+                       name="username"
+                       required
+                       autofocus
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password"
+                       type="password"
+                       name="password"
+                       required
+                       class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Accedi</button>
+        </form>
+
+        <p class="form-footer">
+            Non hai un account?
+            <a th:href="@{/auth/register}">Registrati</a>
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

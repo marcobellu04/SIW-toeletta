@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('I miei cani')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>I miei cani</h1>
+            <p class="lead">Gestisci i profili dei cani associati al tuo account.</p>
+        </div>
+
+        <a th:href="@{/cani/nuovo}" class="btn btn-primary">Aggiungi cane</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(cani)}" class="empty-state">
+        <p>Non hai ancora registrato cani.</p>
+
+        <div class="quick-links">
+            <a th:href="@{/cani/nuovo}" class="btn btn-primary">Registra il primo cane</a>
+        </div>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(cani)}" class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Razza</th>
+                <th>Taglia</th>
+                <th>Tipo pelo</th>
+                <th>Data nascita</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="c : ${cani}">
+                <td th:text="${c.nome}">Keira</td>
+                <td th:text="${c.razza}">Barboncino</td>
+                <td>
+                    <span class="badge" th:text="${c.taglia}">PICCOLA</span>
+                </td>
+                <td th:text="${c.tipoPelo}">RICCIO</td>
+                <td th:text="${c.dataNascita != null ? #temporals.format(c.dataNascita, 'dd/MM/yyyy') : '-'}">-</td>
+                <td>
+                    <div class="action-group">
+                        <a th:href="@{/cani/{id}/modifica(id=${c.id})}"
+                           class="btn btn-secondary btn-sm">
+                            Modifica
+                        </a>
+
+                        <form th:action="@{/cani/{id}/elimina(id=${c.id})}"
+                              method="post"
+                              class="inline-form"
+                              onsubmit="return confirm('Eliminare questo cane?')">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                Elimina
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

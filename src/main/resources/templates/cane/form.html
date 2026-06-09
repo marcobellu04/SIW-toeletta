@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cane')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container container-sm">
+    <div class="form-card">
+        <h2 th:text="${cane.id == null ? 'Nuovo cane' : 'Modifica cane'}">Cane</h2>
+
+        <form th:action="${cane.id == null} ? @{/cani/nuovo} : @{/cani/{id}/modifica(id=${cane.id})}"
+              method="post"
+              th:object="${cane}">
+
+            <div class="form-group">
+                <label for="nome">Nome</label>
+                <input id="nome"
+                       type="text"
+                       th:field="*{nome}"
+                       required
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="razza">Razza</label>
+                <input id="razza"
+                       type="text"
+                       th:field="*{razza}"
+                       required
+                       class="form-control">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="taglia">Taglia</label>
+                    <select id="taglia"
+                            th:field="*{taglia}"
+                            required
+                            class="form-control">
+                        <option value="">Seleziona</option>
+                        <option th:each="t : ${taglie}"
+                                th:value="${t}"
+                                th:text="${t}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipoPelo">Tipo pelo</label>
+                    <select id="tipoPelo"
+                            th:field="*{tipoPelo}"
+                            required
+                            class="form-control">
+                        <option value="">Seleziona</option>
+                        <option th:each="p : ${tipiPelo}"
+                                th:value="${p}"
+                                th:text="${p}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="dataNascita">Data nascita</label>
+                <input id="dataNascita"
+                       type="date"
+                       th:field="*{dataNascita}"
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="note">Note</label>
+                <textarea id="note"
+                          th:field="*{note}"
+                          class="form-control">
+                </textarea>
+            </div>
+
+            <div class="action-group">
+                <button type="submit" class="btn btn-primary">Salva</button>
+                <a th:href="@{/cani}" class="btn btn-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

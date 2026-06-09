@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' - ZampePulite'">ZampePulite</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+
+<nav th:fragment="navbar" class="navbar">
+    <div class="navbar-brand">
+        <a th:href="@{/}">ZampePulite</a>
+    </div>
+
+    <ul class="navbar-links">
+        <li sec:authorize="isAnonymous()">
+            <a th:href="@{/servizi}">Servizi</a>
+        </li>
+
+        <li sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+            <a th:href="@{/servizi}">Servizi</a>
+        </li>
+
+        <li sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+            <a th:href="@{/cani}">I miei cani</a>
+        </li>
+
+        <li sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+            <a th:href="@{/prenotazioni}">Prenotazioni</a>
+        </li>
+
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin}">Dashboard</a>
+        </li>
+
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/servizi}">Servizi</a>
+        </li>
+
+        <li sec:authorize="isAnonymous()">
+            <a th:href="@{/auth/login}">Accedi</a>
+        </li>
+
+        <li sec:authorize="isAnonymous()">
+            <a th:href="@{/auth/register}">Registrati</a>
+        </li>
+
+        <li sec:authorize="isAuthenticated()">
+            <span class="navbar-user">
+                <span sec:authentication="name"></span>
+            </span>
+        </li>
+
+        <li sec:authorize="isAuthenticated()">
+            <form th:action="@{/auth/logout}" method="post" style="display:inline">
+                <button type="submit" class="btn-logout">Esci</button>
+            </form>
+        </li>
+    </ul>
+</nav>
+
+<div th:fragment="alerts">
+    <div th:if="${successo}" class="alert alert-success" th:text="${successo}"></div>
+    <div th:if="${errore}" class="alert alert-error" th:text="${errore}"></div>
+</div>
+
+<footer th:fragment="footer" class="footer">
+    <p>ZampePulite &copy; 2026 - SIW Toelettatura Canina</p>
+</footer>
+
+</html>

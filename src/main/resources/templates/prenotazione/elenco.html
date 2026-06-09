@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Prenotazioni')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1>Le mie prenotazioni</h1>
+            <p class="lead">Consulta e gestisci i tuoi appuntamenti.</p>
+        </div>
+
+        <a th:href="@{/prenotazioni/nuova}" class="btn btn-primary">Nuova prenotazione</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(prenotazioniConfermate)}" class="empty-state">
+        <p>Non hai prenotazioni confermate.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(prenotazioniConfermate)}" class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Orario</th>
+                <th>Cane</th>
+                <th>Servizio</th>
+                <th>Toelettatore</th>
+                <th>Prezzo</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="p : ${prenotazioniConfermate}">
+                <td th:text="${#temporals.format(p.fasciaOraria.data, 'dd/MM/yyyy')}">01/06/2026</td>
+                <td>
+                    <span th:text="${#temporals.format(p.fasciaOraria.oraInizio, 'HH:mm')}">09:00</span>
+                    -
+                    <span th:text="${#temporals.format(p.fasciaOraria.oraFine, 'HH:mm')}">10:00</span>
+                </td>
+                <td th:text="${p.cane.nome}">Luna</td>
+                <td th:text="${p.servizio.nome}">Bagno</td>
+                <td th:text="${p.toelettatore.nome + ' ' + p.toelettatore.cognome}">Mario Rossi</td>
+                <td th:text="${p.prezzoFinale + ' euro'}">25 euro</td>
+                <td>
+                    <form th:action="@{/prenotazioni/{id}/annulla(id=${p.id})}"
+                          method="post"
+                          class="inline-form"
+                          onsubmit="return confirm('Annullare questa prenotazione?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Annulla</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <section style="margin-top: 2rem;" th:if="${not #lists.isEmpty(prenotazioniAnnullate)}">
+        <div class="page-header">
+            <div>
+                <h1>Storico annullate</h1>
+                <p class="lead">Prenotazioni annullate in precedenza.</p>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Cane</th>
+                    <th>Servizio</th>
+                    <th>Toelettatore</th>
+                    <th>Stato</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="p : ${prenotazioniAnnullate}">
+                    <td th:text="${#temporals.format(p.fasciaOraria.data, 'dd/MM/yyyy')}">01/06/2026</td>
+                    <td th:text="${p.cane.nome}">Luna</td>
+                    <td th:text="${p.servizio.nome}">Bagno</td>
+                    <td th:text="${p.toelettatore.nome + ' ' + p.toelettatore.cognome}">Mario Rossi</td>
+                    <td><span class="badge" th:text="${p.stato}">ANNULLATA</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
