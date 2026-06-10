@@ -139,22 +139,25 @@ public class AdminController {
 
     @PostMapping("/fasce-orarie/nuova")
     public String salvaFascia(@ModelAttribute FasciaOraria fascia,
-                              @RequestParam Long toelettatoreId,
+                              @RequestParam(required = false) Long toelettatoreId,
                               RedirectAttributes redirectAttributes) {
-        fasciaOrariaService.save(fascia, toelettatoreId);
-        redirectAttributes.addFlashAttribute("successo", "Fascia oraria creata.");
-        return "redirect:/admin/fasce-orarie";
+        try {
+            fasciaOrariaService.save(fascia, toelettatoreId);
+            redirectAttributes.addFlashAttribute("successo", "Fascia oraria creata.");
+            return "redirect:/admin/fasce-orarie";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errore", e.getMessage());
+            return "redirect:/admin/fasce-orarie/nuova";
+        }
     }
     
     @GetMapping("/fasce-orarie/genera")
     public String generaFasceForm(Model model) {
-        model.addAttribute("toelettatori", toelettatoreService.findAttivi());
         return "admin/fascia/genera";
     }
 
     @PostMapping("/fasce-orarie/genera")
-    public String generaFasce(@RequestParam Long toelettatoreId,
-                              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInizio,
+    public String generaFasce(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInizio,
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFine,
                               @RequestParam List<DayOfWeek> giorni,
                               @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime oraInizio,
@@ -163,7 +166,6 @@ public class AdminController {
                               RedirectAttributes redirectAttributes) {
         try {
             int create = fasciaOrariaService.generaFasce(
-                toelettatoreId,
                 dataInizio,
                 dataFine,
                 giorni,
@@ -180,6 +182,39 @@ public class AdminController {
         }
     }
 
+
+    @GetMapping("/fasce-orarie/assegna-turno")
+    public String assegnaTurnoForm(Model model) {
+        model.addAttribute("toelettatori", toelettatoreService.findAttivi());
+        return "admin/fascia/assegna-turno";
+    }
+
+    @PostMapping("/fasce-orarie/assegna-turno")
+    public String assegnaTurno(@RequestParam Long toelettatoreId,
+                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInizio,
+                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFine,
+                               @RequestParam List<DayOfWeek> giorni,
+                               @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime oraInizio,
+                               @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime oraFine,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            int aggiornate = fasciaOrariaService.assegnaTurno(
+                toelettatoreId,
+                dataInizio,
+                dataFine,
+                giorni,
+                oraInizio,
+                oraFine
+            );
+
+            redirectAttributes.addFlashAttribute("successo", "Assegnate " + aggiornate + " fasce orarie.");
+            return "redirect:/admin/fasce-orarie";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errore", e.getMessage());
+            return "redirect:/admin/fasce-orarie/assegna-turno";
+        }
+    }
+
     @GetMapping("/fasce-orarie/{id}/modifica")
     public String modificaFascia(@PathVariable Long id, Model model) {
         model.addAttribute("fascia", fasciaOrariaService.findById(id));
@@ -190,11 +225,16 @@ public class AdminController {
     @PostMapping("/fasce-orarie/{id}/modifica")
     public String aggiornaFascia(@PathVariable Long id,
                                  @ModelAttribute FasciaOraria fascia,
-                                 @RequestParam Long toelettatoreId,
+                                 @RequestParam(required = false) Long toelettatoreId,
                                  RedirectAttributes redirectAttributes) {
-        fasciaOrariaService.update(id, fascia, toelettatoreId);
-        redirectAttributes.addFlashAttribute("successo", "Fascia oraria aggiornata.");
-        return "redirect:/admin/fasce-orarie";
+        try {
+            fasciaOrariaService.update(id, fascia, toelettatoreId);
+            redirectAttributes.addFlashAttribute("successo", "Fascia oraria aggiornata.");
+            return "redirect:/admin/fasce-orarie";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errore", e.getMessage());
+            return "redirect:/admin/fasce-orarie/" + id + "/modifica";
+        }
     }
 
     @PostMapping("/fasce-orarie/{id}/elimina")

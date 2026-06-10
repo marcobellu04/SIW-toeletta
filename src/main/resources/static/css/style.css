@@ -507,3 +507,23 @@ textarea.form-control {
   }
 }
 ```
+.schedule-table .schedule-day-row td {
+  background: #d7ebe6;
+  color: var(--teal-dark);
+  font-weight: 700;
+  border-top: 1px solid var(--gray-light);
+}
+
+.schedule-table .schedule-day-row:hover td {
+  background: #d7ebe6;
+}
+
+.badge-muted {
+  background: #eef1ee;
+  color: var(--gray);
+}
+
+.badge-danger {
+  background: #ffebee;
+  color: var(--red);
+}

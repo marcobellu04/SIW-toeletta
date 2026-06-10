@@ -13,6 +13,7 @@ import it.uniroma3.siw.toeletta.service.CaneService;
 import it.uniroma3.siw.toeletta.service.FasciaOrariaService;
 import it.uniroma3.siw.toeletta.service.PrenotazioneService;
 import it.uniroma3.siw.toeletta.service.ServizioService;
+import it.uniroma3.siw.toeletta.service.ToelettatoreService;
 import it.uniroma3.siw.toeletta.service.UtenteService;
 
 @Controller
@@ -33,6 +34,9 @@ public class PrenotazioneController {
 
     @Autowired
     private FasciaOrariaService fasciaOrariaService;
+
+    @Autowired
+    private ToelettatoreService toelettatoreService;
 
     @GetMapping
     public String elenco(@AuthenticationPrincipal UserDetails userDetails, Model model) {
@@ -61,6 +65,7 @@ public class PrenotazioneController {
         model.addAttribute("cani", caneService.findByProprietario(utente.getId()));
         model.addAttribute("servizi", servizioService.findAttivi());
         model.addAttribute("fasceDisponibili", fasciaOrariaService.findDisponibili());
+        model.addAttribute("toelettatori", toelettatoreService.findAttivi());
         model.addAttribute("servizioSelezionatoId", servizioId);
 
         return "prenotazione/form";
@@ -76,15 +81,12 @@ public class PrenotazioneController {
         Utente utente = utenteService.findByUsername(userDetails.getUsername());
 
         try {
-            String[] parti = fasciaScelta.split("-");
-            Long fasciaOrariaId = Long.valueOf(parti[0]);
-            Long toelettatoreId = Long.valueOf(parti[1]);
+            Long fasciaOrariaId = Long.valueOf(fasciaScelta);
 
             prenotazioneService.prenota(
                     utente.getId(),
                     caneId,
                     servizioId,
-                    toelettatoreId,
                     fasciaOrariaId,
                     noteCliente
             );

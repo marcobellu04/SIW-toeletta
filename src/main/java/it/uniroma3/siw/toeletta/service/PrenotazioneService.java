@@ -1,5 +1,7 @@
 package it.uniroma3.siw.toeletta.service;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,6 @@ import it.uniroma3.siw.toeletta.repository.CaneRepository;
 import it.uniroma3.siw.toeletta.repository.FasciaOrariaRepository;
 import it.uniroma3.siw.toeletta.repository.PrenotazioneRepository;
 import it.uniroma3.siw.toeletta.repository.ServizioRepository;
-import it.uniroma3.siw.toeletta.repository.ToelettatoreRepository;
 import it.uniroma3.siw.toeletta.repository.UtenteRepository;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -35,9 +36,6 @@ public class PrenotazioneService {
 
     @Autowired
     private ServizioRepository servizioRepository;
-
-    @Autowired
-    private ToelettatoreRepository toelettatoreRepository;
 
     @Autowired
     private FasciaOrariaRepository fasciaOrariaRepository;
@@ -79,7 +77,7 @@ public class PrenotazioneService {
             StatoPrenotazione.CONFERMATA
         );
     }
-    
+
     @Transactional(readOnly = true)
     public List<Prenotazione> findConfermate() {
         return prenotazioneRepository.findAllByStatoWithDetails(StatoPrenotazione.CONFERMATA);
@@ -94,7 +92,6 @@ public class PrenotazioneService {
     public Prenotazione prenota(Long utenteId,
                                 Long caneId,
                                 Long servizioId,
-                                Long toelettatoreId,
                                 Long fasciaOrariaId,
                                 String noteCliente) {
 
@@ -111,28 +108,15 @@ public class PrenotazioneService {
         Servizio servizio = servizioRepository.findById(servizioId)
             .orElseThrow(() -> new EntityNotFoundException("Servizio non trovato: " + servizioId));
 
-        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
-            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
-
         FasciaOraria fasciaOraria = fasciaOrariaRepository.findById(fasciaOrariaId)
             .orElseThrow(() -> new EntityNotFoundException("Fascia oraria non trovata: " + fasciaOrariaId));
 
-        if (!Boolean.TRUE.equals(fasciaOraria.getDisponibile())) {
-            throw new IllegalStateException("La fascia oraria selezionata non e' disponibile.");
-        }
- 
-        if (!fasciaOraria.getToelettatore().getId().equals(toelettatore.getId())) {
-            throw new IllegalArgumentException("La fascia oraria non appartiene al toelettatore selezionato.");
+        Toelettatore toelettatore = fasciaOraria.getToelettatore();
+        if (toelettatore == null) {
+            throw new IllegalStateException("La fascia oraria selezionata non ha un toelettatore assegnato.");
         }
 
-        boolean giaPrenotata = prenotazioneRepository.existsByFasciaOrariaIdAndStato(
-            fasciaOrariaId,
-            StatoPrenotazione.CONFERMATA
-        );
-
-        if (giaPrenotata) {
-            throw new IllegalStateException("Esiste gia una prenotazione confermata per questa fascia oraria.");
-        }
+        List<FasciaOraria> fasceDaOccupare = trovaFasceConsecutiveDisponibili(fasciaOraria, servizio.getDurataMinuti());
 
         Prenotazione prenotazione = new Prenotazione();
         prenotazione.setUtente(utente);
@@ -144,7 +128,9 @@ public class PrenotazioneService {
         prenotazione.setPrezzoFinale(servizio.getPrezzoBase());
         prenotazione.setStato(StatoPrenotazione.CONFERMATA);
 
-        fasciaOraria.setDisponibile(false);
+        for (FasciaOraria fascia : fasceDaOccupare) {
+            fascia.setDisponibile(false);
+        }
 
         return prenotazioneRepository.save(prenotazione);
     }
@@ -157,19 +143,111 @@ public class PrenotazioneService {
             throw new IllegalArgumentException("Non puoi annullare una prenotazione di un altro utente.");
         }
 
-        prenotazione.setStato(StatoPrenotazione.ANNULLATA);
-        prenotazione.getFasciaOraria().setDisponibile(true);
-
-        prenotazioneRepository.save(prenotazione);
+        annullaPrenotazione(prenotazione);
     }
 
     @Transactional
     public void annullaDaAdmin(Long prenotazioneId) {
         Prenotazione prenotazione = findById(prenotazioneId);
+        annullaPrenotazione(prenotazione);
+    }
 
+    private void annullaPrenotazione(Prenotazione prenotazione) {
         prenotazione.setStato(StatoPrenotazione.ANNULLATA);
-        prenotazione.getFasciaOraria().setDisponibile(true);
+
+        List<FasciaOraria> fasceDaLiberare = trovaFasceConsecutiveDaLiberare(
+            prenotazione.getFasciaOraria(),
+            prenotazione.getServizio().getDurataMinuti()
+        );
+
+        for (FasciaOraria fascia : fasceDaLiberare) {
+            fascia.setDisponibile(true);
+        }
 
         prenotazioneRepository.save(prenotazione);
+    }
+
+    private List<FasciaOraria> trovaFasceConsecutiveDisponibili(FasciaOraria fasciaIniziale, Integer durataMinuti) {
+        List<FasciaOraria> fasce = fasciaOrariaRepository.findByToelettatoreIdAndDataOrderByOraInizioAsc(
+            fasciaIniziale.getToelettatore().getId(),
+            fasciaIniziale.getData()
+        );
+
+        List<FasciaOraria> selezionate = new ArrayList<>();
+        int minutiCoperti = 0;
+        boolean iniziata = false;
+
+        for (FasciaOraria fascia : fasce) {
+            if (!iniziata) {
+                if (!fascia.getId().equals(fasciaIniziale.getId())) {
+                    continue;
+                }
+                iniziata = true;
+            }
+
+            if (!Boolean.TRUE.equals(fascia.getDisponibile())) {
+                throw new IllegalStateException("Non ci sono abbastanza slot consecutivi disponibili per il servizio scelto.");
+            }
+
+            if (fascia.getToelettatore() == null || !fascia.getToelettatore().getId().equals(fasciaIniziale.getToelettatore().getId())) {
+                throw new IllegalStateException("Gli slot consecutivi non appartengono allo stesso toelettatore.");
+            }
+
+            if (!selezionate.isEmpty()) {
+                FasciaOraria precedente = selezionate.get(selezionate.size() - 1);
+                if (!precedente.getOraFine().equals(fascia.getOraInizio())) {
+                    throw new IllegalStateException("Non ci sono abbastanza slot consecutivi disponibili per il servizio scelto.");
+                }
+            }
+
+            selezionate.add(fascia);
+            minutiCoperti += durataFascia(fascia);
+
+            if (minutiCoperti >= durataMinuti) {
+                return selezionate;
+            }
+        }
+
+        throw new IllegalStateException("Non ci sono abbastanza slot consecutivi disponibili per il servizio scelto.");
+    }
+
+    private List<FasciaOraria> trovaFasceConsecutiveDaLiberare(FasciaOraria fasciaIniziale, Integer durataMinuti) {
+        List<FasciaOraria> fasce = fasciaOrariaRepository.findByToelettatoreIdAndDataOrderByOraInizioAsc(
+            fasciaIniziale.getToelettatore().getId(),
+            fasciaIniziale.getData()
+        );
+
+        List<FasciaOraria> selezionate = new ArrayList<>();
+        int minutiCoperti = 0;
+        boolean iniziata = false;
+
+        for (FasciaOraria fascia : fasce) {
+            if (!iniziata) {
+                if (!fascia.getId().equals(fasciaIniziale.getId())) {
+                    continue;
+                }
+                iniziata = true;
+            }
+
+            if (!selezionate.isEmpty()) {
+                FasciaOraria precedente = selezionate.get(selezionate.size() - 1);
+                if (!precedente.getOraFine().equals(fascia.getOraInizio())) {
+                    break;
+                }
+            }
+
+            selezionate.add(fascia);
+            minutiCoperti += durataFascia(fascia);
+
+            if (minutiCoperti >= durataMinuti) {
+                return selezionate;
+            }
+        }
+
+        return selezionate;
+    }
+
+    private int durataFascia(FasciaOraria fascia) {
+        return (int) Duration.between(fascia.getOraInizio(), fascia.getOraFine()).toMinutes();
     }
 }

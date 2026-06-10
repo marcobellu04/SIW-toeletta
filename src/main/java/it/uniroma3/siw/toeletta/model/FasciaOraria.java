@@ -29,7 +29,7 @@ public class FasciaOraria {
 	private Boolean disponibile = true;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "toelettatore_id", nullable = false)
+	@JoinColumn(name = "toelettatore_id")
 	private Toelettatore toelettatore;
 	
 	@OneToOne(mappedBy = "fasciaOraria", fetch = FetchType.LAZY)

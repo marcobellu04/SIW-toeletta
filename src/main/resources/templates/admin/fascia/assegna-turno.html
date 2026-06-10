@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Genera fasce')}"></head>
+<head th:replace="~{fragments/layout :: head('Assegna turno')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
@@ -8,9 +8,21 @@
     <div th:replace="~{fragments/layout :: alerts}"></div>
 
     <div class="form-card">
-        <h2>Genera fasce orarie</h2>
+        <h2>Assegna turno</h2>
 
-        <form th:action="@{/admin/fasce-orarie/genera}" method="post">
+        <form th:action="@{/admin/fasce-orarie/assegna-turno}" method="post">
+            <div class="form-group">
+                <label for="toelettatoreId">Toelettatore</label>
+                <select id="toelettatoreId" name="toelettatoreId" required class="form-control">
+                    <option value="">Seleziona toelettatore</option>
+                    <option th:each="t : ${toelettatori}"
+                            th:value="${t.id}"
+                            th:text="${t.nome + ' ' + t.cognome}">
+                        Giulia Bianchi
+                    </option>
+                </select>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="dataInizio">Dal</label>
@@ -24,22 +36,22 @@
             </div>
 
             <div class="form-group">
-                <label>Giorni lavorativi</label>
+                <label>Giorni del turno</label>
 
                 <label class="checkbox-line">
-                    <input type="checkbox" name="giorni" value="MONDAY"> Luned&igrave;
+                    <input type="checkbox" name="giorni" value="MONDAY"> Lunedi
                 </label>
                 <label class="checkbox-line">
-                    <input type="checkbox" name="giorni" value="TUESDAY"> Marted&igrave;
+                    <input type="checkbox" name="giorni" value="TUESDAY"> Martedi
                 </label>
                 <label class="checkbox-line">
-                    <input type="checkbox" name="giorni" value="WEDNESDAY"> Mercoled&igrave;
+                    <input type="checkbox" name="giorni" value="WEDNESDAY"> Mercoledi
                 </label>
                 <label class="checkbox-line">
-                    <input type="checkbox" name="giorni" value="THURSDAY"> Gioved&igrave;
+                    <input type="checkbox" name="giorni" value="THURSDAY"> Giovedi
                 </label>
                 <label class="checkbox-line">
-                    <input type="checkbox" name="giorni" value="FRIDAY"> Venerd&igrave;
+                    <input type="checkbox" name="giorni" value="FRIDAY"> Venerdi
                 </label>
                 <label class="checkbox-line">
                     <input type="checkbox" name="giorni" value="SATURDAY"> Sabato
@@ -51,28 +63,18 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="oraInizio">Ora inizio</label>
+                    <label for="oraInizio">Ora inizio turno</label>
                     <input id="oraInizio" type="time" name="oraInizio" value="09:00" required class="form-control">
                 </div>
 
                 <div class="form-group">
-                    <label for="oraFine">Ora fine</label>
-                    <input id="oraFine" type="time" name="oraFine" value="19:00" required class="form-control">
+                    <label for="oraFine">Ora fine turno</label>
+                    <input id="oraFine" type="time" name="oraFine" value="14:00" required class="form-control">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="durataMinuti">Durata slot</label>
-                <select id="durataMinuti" name="durataMinuti" required class="form-control">
-                    <option value="30">30 minuti</option>
-                    <option value="45">45 minuti</option>
-                    <option value="60" selected>60 minuti</option>
-                    <option value="90">90 minuti</option>
-                </select>
-            </div>
-
             <div class="action-group">
-                <button type="submit" class="btn btn-primary">Genera fasce</button>
+                <button type="submit" class="btn btn-primary">Assegna turno</button>
                 <a th:href="@{/admin/fasce-orarie}" class="btn btn-secondary">Annulla</a>
             </div>
         </form>

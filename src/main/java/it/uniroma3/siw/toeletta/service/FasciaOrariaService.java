@@ -29,16 +29,14 @@ public class FasciaOrariaService {
         return fasciaOrariaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Fascia oraria non trovata: " + id));
     }
-    
-    
+
     @Transactional(readOnly = true)
     public List<FasciaOraria> findAll() {
         return fasciaOrariaRepository.findAllWithToelettatoreOrderByDataAscOraInizioAsc();
     }
 
     @Transactional
-    public int generaFasce(Long toelettatoreId,
-                           LocalDate dataInizio,
+    public int generaFasce(LocalDate dataInizio,
                            LocalDate dataFine,
                            List<DayOfWeek> giorni,
                            LocalTime oraInizio,
@@ -56,9 +54,6 @@ public class FasciaOrariaService {
             throw new IllegalArgumentException("La durata dello slot deve essere positiva.");
         }
 
-        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
-            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
-
         int create = 0;
         LocalDate giorno = dataInizio;
 
@@ -67,15 +62,10 @@ public class FasciaOrariaService {
                 LocalTime inizioSlot = oraInizio;
 
                 while (!inizioSlot.plusMinutes(durataMinuti).isAfter(oraFine)) {
-                    boolean giaEsiste = fasciaOrariaRepository.existsByToelettatoreIdAndDataAndOraInizio(
-                        toelettatoreId,
-                        giorno,
-                        inizioSlot
-                    );
+                    boolean giaEsiste = fasciaOrariaRepository.existsByDataAndOraInizio(giorno, inizioSlot);
 
                     if (!giaEsiste) {
                         FasciaOraria fascia = new FasciaOraria();
-                        fascia.setToelettatore(toelettatore);
                         fascia.setData(giorno);
                         fascia.setOraInizio(inizioSlot);
                         fascia.setOraFine(inizioSlot.plusMinutes(durataMinuti));
@@ -95,9 +85,47 @@ public class FasciaOrariaService {
         return create;
     }
 
+
+    @Transactional
+    public int assegnaTurno(Long toelettatoreId,
+                            LocalDate dataInizio,
+                            LocalDate dataFine,
+                            List<DayOfWeek> giorni,
+                            LocalTime oraInizio,
+                            LocalTime oraFine) {
+        if (dataFine.isBefore(dataInizio)) {
+            throw new IllegalArgumentException("La data fine non puo essere precedente alla data inizio.");
+        }
+
+        if (!oraFine.isAfter(oraInizio)) {
+            throw new IllegalArgumentException("L'ora fine deve essere successiva all'ora inizio.");
+        }
+
+        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
+            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
+
+        int aggiornate = 0;
+        List<FasciaOraria> fasce = fasciaOrariaRepository
+            .findByDataBetweenOrderByDataAscOraInizioAsc(dataInizio, dataFine);
+
+        for (FasciaOraria fascia : fasce) {
+            boolean giornoIncluso = giorni.contains(fascia.getData().getDayOfWeek());
+            boolean dentroTurno = !fascia.getOraInizio().isBefore(oraInizio)
+                && !fascia.getOraFine().isAfter(oraFine);
+            boolean modificabile = Boolean.TRUE.equals(fascia.getDisponibile());
+
+            if (giornoIncluso && dentroTurno && modificabile) {
+                fascia.setToelettatore(toelettatore);
+                aggiornate++;
+            }
+        }
+
+        return aggiornate;
+    }
+
     @Transactional(readOnly = true)
     public List<FasciaOraria> findDisponibili() {
-        return fasciaOrariaRepository.findByDisponibileTrueOrderByDataAscOraInizioAsc();
+        return fasciaOrariaRepository.findDisponibiliAssegnateOrderByDataAscOraInizioAsc();
     }
 
     @Transactional(readOnly = true)
@@ -113,20 +141,16 @@ public class FasciaOrariaService {
 
     @Transactional
     public FasciaOraria save(FasciaOraria fasciaOraria, Long toelettatoreId) {
-        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
-            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
-
-        boolean giaEsiste = fasciaOrariaRepository.existsByToelettatoreIdAndDataAndOraInizio(
-            toelettatoreId,
+        boolean giaEsiste = fasciaOrariaRepository.existsByDataAndOraInizio(
             fasciaOraria.getData(),
             fasciaOraria.getOraInizio()
         );
 
         if (giaEsiste) {
-            throw new IllegalArgumentException("Esiste gia una fascia oraria per questo toelettatore nella stessa data e ora.");
+            throw new IllegalArgumentException("Esiste gia una fascia oraria nella stessa data e ora.");
         }
 
-        fasciaOraria.setToelettatore(toelettatore);
+        assegnaToelettatore(fasciaOraria, toelettatoreId);
         fasciaOraria.setDisponibile(true);
 
         return fasciaOrariaRepository.save(fasciaOraria);
@@ -136,14 +160,11 @@ public class FasciaOrariaService {
     public FasciaOraria update(Long id, FasciaOraria dati, Long toelettatoreId) {
         FasciaOraria fascia = findById(id);
 
-        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
-            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
-
         fascia.setData(dati.getData());
         fascia.setOraInizio(dati.getOraInizio());
         fascia.setOraFine(dati.getOraFine());
         fascia.setDisponibile(dati.getDisponibile());
-        fascia.setToelettatore(toelettatore);
+        assegnaToelettatore(fascia, toelettatoreId);
 
         return fasciaOrariaRepository.save(fascia);
     }
@@ -151,5 +172,17 @@ public class FasciaOrariaService {
     @Transactional
     public void delete(Long id) {
         fasciaOrariaRepository.deleteById(id);
+    }
+
+    private void assegnaToelettatore(FasciaOraria fascia, Long toelettatoreId) {
+        if (toelettatoreId == null) {
+            fascia.setToelettatore(null);
+            return;
+        }
+
+        Toelettatore toelettatore = toelettatoreRepository.findById(toelettatoreId)
+            .orElseThrow(() -> new EntityNotFoundException("Toelettatore non trovato: " + toelettatoreId));
+
+        fascia.setToelettatore(toelettatore);
     }
 }

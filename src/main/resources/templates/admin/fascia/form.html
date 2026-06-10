@@ -14,8 +14,8 @@
 
             <div class="form-group">
                 <label for="toelettatoreId">Toelettatore</label>
-                <select id="toelettatoreId" name="toelettatoreId" required class="form-control">
-                    <option value="">Seleziona toelettatore</option>
+                <select id="toelettatoreId" name="toelettatoreId" class="form-control">
+                    <option value="">Non assegnato</option>
                     <option th:each="t : ${toelettatori}"
                             th:value="${t.id}"
                             th:selected="${fascia.toelettatore != null and fascia.toelettatore.id == t.id}"
@@ -45,7 +45,7 @@
             <div class="form-group" th:if="${fascia.id != null}">
                 <label for="disponibile">Disponibile</label>
                 <select id="disponibile" th:field="*{disponibile}" required class="form-control">
-                    <option th:value="true">Sì</option>
+                    <option th:value="true">Si</option>
                     <option th:value="false">No</option>
                 </select>
             </div>

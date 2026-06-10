@@ -40,7 +40,7 @@
                 <td>
                     <span th:text="${#temporals.format(p.fasciaOraria.oraInizio, 'HH:mm')}">09:00</span>
                     -
-                    <span th:text="${#temporals.format(p.fasciaOraria.oraFine, 'HH:mm')}">10:00</span>
+                    <span th:text="${#temporals.format(p.fasciaOraria.oraInizio.plusMinutes(p.servizio.durataMinuti), 'HH:mm')}">10:00</span>
                 </td>
                 <td th:text="${p.cane.nome}">Luna</td>
                 <td th:text="${p.servizio.nome}">Bagno</td>
@@ -73,6 +73,7 @@
                 <tr>
                     <th>Data</th>
                     <th>Cane</th>
+                    <th>Orario</th>
                     <th>Servizio</th>
                     <th>Toelettatore</th>
                     <th>Stato</th>
@@ -83,6 +84,11 @@
                 <tr th:each="p : ${prenotazioniAnnullate}">
                     <td th:text="${#temporals.format(p.fasciaOraria.data, 'dd/MM/yyyy')}">01/06/2026</td>
                     <td th:text="${p.cane.nome}">Luna</td>
+                    <td>
+                        <span th:text="${#temporals.format(p.fasciaOraria.oraInizio, 'HH:mm')}">09:00</span>
+                        -
+                        <span th:text="${#temporals.format(p.fasciaOraria.oraInizio.plusMinutes(p.servizio.durataMinuti), 'HH:mm')}">10:00</span>
+                    </td>
                     <td th:text="${p.servizio.nome}">Bagno</td>
                     <td th:text="${p.toelettatore.nome + ' ' + p.toelettatore.cognome}">Mario Rossi</td>
                     <td><span class="badge" th:text="${p.stato}">ANNULLATA</span></td>

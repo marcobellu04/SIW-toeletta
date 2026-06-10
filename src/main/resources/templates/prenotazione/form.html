@@ -10,7 +10,7 @@
     <div class="page-header">
         <div>
             <h1>Nuova prenotazione</h1>
-            <p class="lead">Scegli giorno e ora, poi seleziona una disponibilità.</p>
+            <p class="lead">Scegli servizio, toelettatore e giorno, poi seleziona uno degli orari disponibili.</p>
         </div>
     </div>
 
@@ -31,10 +31,11 @@
 
                 <div class="form-group">
                     <label for="servizioId">Servizio</label>
-                    <select id="servizioId" name="servizioId" required class="form-control">
+                    <select id="servizioId" name="servizioId" required class="form-control" onchange="cercaDisponibilita()">
                         <option value="">Seleziona servizio</option>
                         <option th:each="s : ${servizi}"
                                 th:value="${s.id}"
+                                th:attr="data-durata=${s.durataMinuti}"
                                 th:selected="${servizioSelezionatoId != null and s.id == servizioSelezionatoId}"
                                 th:text="${s.nome + ' - ' + s.prezzoBase + ' euro'}">
                             Bagno - 25 euro
@@ -45,22 +46,21 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="giornoRichiesto">Giorno</label>
-                    <input id="giornoRichiesto" type="date" class="form-control" onchange="cercaDisponibilita()">
+                    <label for="toelettatoreRichiesto">Toelettatore</label>
+                    <select id="toelettatoreRichiesto" class="form-control" required onchange="cercaDisponibilita()">
+                        <option value="">Seleziona toelettatore</option>
+                        <option th:each="t : ${toelettatori}"
+                                th:value="${t.id}"
+                                th:text="${t.nome + ' ' + t.cognome}">
+                            Giulia Bianchi
+                        </option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="oraRichiesta">Ora</label>
-                    <input id="oraRichiesta" type="time" class="form-control" step="1800" onchange="cercaDisponibilita()">
+                    <label for="giornoRichiesto">Giorno</label>
+                    <input id="giornoRichiesto" type="date" class="form-control" required onchange="cercaDisponibilita()">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="noteCliente">Note</label>
-                <textarea id="noteCliente"
-                          name="noteCliente"
-                          class="form-control"
-                          placeholder="Eventuali indicazioni per il toelettatore"></textarea>
             </div>
         </div>
 
@@ -68,7 +68,7 @@
             <input type="hidden" id="fasciaScelta" name="fasciaScelta">
 
             <div id="availability-empty" class="empty-state">
-                <p>Seleziona giorno e ora per vedere le disponibilità.</p>
+                <p>Seleziona servizio, toelettatore e giorno per vedere gli orari disponibili.</p>
             </div>
 
             <div id="availability-results" class="availability-grid">
@@ -76,14 +76,17 @@
                         th:each="f : ${fasceDisponibili}"
                         class="availability-card"
                         style="display: none;"
-                        th:attr="data-value=${f.id + '-' + f.toelettatore.id},
+                        th:attr="data-value=${f.id},
+                                 data-toelettatore=${f.toelettatore.id},
                                  data-date=${#temporals.format(f.data, 'yyyy-MM-dd')},
-                                 data-start=${#temporals.format(f.oraInizio, 'HH:mm')}"
+                                 data-date-label=${#temporals.format(f.data, 'dd/MM/yyyy')},
+                                 data-start=${#temporals.format(f.oraInizio, 'HH:mm')},
+                                 data-end=${#temporals.format(f.oraFine, 'HH:mm')}"
                         onclick="selezionaSlot(this)">
                     <span class="availability-time">
                         <span th:text="${#temporals.format(f.oraInizio, 'HH:mm')}">10:30</span>
                         -
-                        <span th:text="${#temporals.format(f.oraFine, 'HH:mm')}">11:30</span>
+                        <span th:text="${#temporals.format(f.oraFine, 'HH:mm')}">11:00</span>
                     </span>
 
                     <span class="availability-person"
@@ -99,6 +102,16 @@
             </div>
         </section>
 
+        <div class="form-card" style="margin-top: 1.5rem;">
+            <div class="form-group">
+                <label for="noteCliente">Note</label>
+                <textarea id="noteCliente"
+                          name="noteCliente"
+                          class="form-control"
+                          placeholder="Eventuali indicazioni per il toelettatore"></textarea>
+            </div>
+        </div>
+
         <div class="action-group" style="margin-top: 1.5rem;">
             <button type="submit" class="btn btn-primary">Conferma prenotazione</button>
             <a th:href="@{/prenotazioni}" class="btn btn-secondary">Annulla</a>
@@ -110,35 +123,91 @@
 
 <script>
     function cercaDisponibilita() {
+        const servizioSelect = document.getElementById('servizioId');
+        const servizio = servizioSelect.value;
+        const durata = getDurataServizio();
+        const toelettatore = document.getElementById('toelettatoreRichiesto').value;
         const giorno = document.getElementById('giornoRichiesto').value;
-        const ora = document.getElementById('oraRichiesta').value;
-        const cards = document.querySelectorAll('.availability-card');
+        const cards = Array.from(document.querySelectorAll('.availability-card'));
         const empty = document.getElementById('availability-empty');
 
         document.getElementById('fasciaScelta').value = '';
 
-        let trovate = 0;
-
         cards.forEach(function(card) {
             card.classList.remove('selected');
+            card.style.display = 'none';
+        });
 
-            if (giorno && ora && card.dataset.date === giorno && card.dataset.start === ora) {
+        if (!servizio || !toelettatore || !giorno || !durata) {
+            empty.innerHTML = '<p>Seleziona servizio, toelettatore e giorno per vedere gli orari disponibili.</p>';
+            empty.style.display = 'block';
+            return;
+        }
+
+        const slots = cards
+            .filter(function(card) {
+                return card.dataset.toelettatore === toelettatore && card.dataset.date === giorno;
+            })
+            .sort(function(a, b) {
+                return a.dataset.start.localeCompare(b.dataset.start);
+            });
+
+        let trovate = 0;
+
+        slots.forEach(function(card, index) {
+            const end = calcolaFinePrenotazione(slots, index, durata);
+
+            if (end) {
+                card.querySelector('.availability-time').textContent = card.dataset.start + ' - ' + end;
                 card.style.display = 'block';
                 trovate++;
-            } else {
-                card.style.display = 'none';
             }
         });
 
-        if (!giorno || !ora) {
-            empty.innerHTML = '<p>Seleziona giorno e ora per vedere le disponibilità.</p>';
-            empty.style.display = 'block';
-        } else if (trovate === 0) {
-            empty.innerHTML = '<p>Nessuna disponibilità trovata per giorno e ora selezionati.</p>';
+        if (trovate === 0) {
+            empty.innerHTML = '<p>Nessun orario disponibile per il servizio, il toelettatore e il giorno selezionati.</p>';
             empty.style.display = 'block';
         } else {
             empty.style.display = 'none';
         }
+    }
+
+    function getDurataServizio() {
+        const option = document.getElementById('servizioId').selectedOptions[0];
+        return option && option.dataset.durata ? Number(option.dataset.durata) : 0;
+    }
+
+    function calcolaFinePrenotazione(slots, startIndex, durataRichiesta) {
+        const primo = slots[startIndex];
+        let minutiCoperti = 0;
+        let fine = primo.dataset.end;
+
+        for (let i = startIndex; i < slots.length; i++) {
+            const slot = slots[i];
+
+            if (slot.dataset.date !== primo.dataset.date) {
+                return null;
+            }
+
+            if (i > startIndex && slots[i - 1].dataset.end !== slot.dataset.start) {
+                return null;
+            }
+
+            minutiCoperti += minutiTra(slot.dataset.start, slot.dataset.end);
+            fine = slot.dataset.end;
+
+            if (minutiCoperti >= durataRichiesta) {
+                return fine;
+            }
+        }
+
+        return null;
+    }
+
+    function minutiTra(inizio, fine) {
+        const inizioParti = inizio.split(':').map(Number);
+        const fineParti = fine.split(':').map(Number);
+        return (fineParti[0] * 60 + fineParti[1]) - (inizioParti[0] * 60 + inizioParti[1]);
     }
 
     function selezionaSlot(card) {
@@ -152,12 +221,14 @@
 
     function controllaSlot() {
         if (!document.getElementById('fasciaScelta').value) {
-            alert('Seleziona una disponibilità.');
+            alert('Seleziona una disponibilita.');
             return false;
         }
 
         return true;
     }
+
+    cercaDisponibilita();
 </script>
 </body>
 </html>
