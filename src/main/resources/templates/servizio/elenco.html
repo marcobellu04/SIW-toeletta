@@ -10,6 +10,7 @@
     <div class="page-header">
         <div>
             <h1>Servizi</h1>
+				
             <p class="lead">Consulta i trattamenti disponibili e prenota quello più adatto al tuo cane.</p>
         </div>
     </div>
@@ -20,6 +21,10 @@
 
     <div th:unless="${#lists.isEmpty(servizi)}" class="card-grid">
         <div th:each="s : ${servizi}" class="card">
+            <img class="service-card-image"
+                 th:src="@{/images/servizio-toeletta.png}"
+                 alt="Toelettatura cane">
+
             <h3 th:text="${s.nome}">Bagno completo</h3>
 
             <p class="card-desc" th:text="${s.descrizione}">

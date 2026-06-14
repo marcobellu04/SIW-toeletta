@@ -1,6 +1,7 @@
 package it.uniroma3.siw.toeletta.service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,44 +49,54 @@ public class PrenotazioneService {
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findConfermateByUtente(Long utenteId) {
-        return prenotazioneRepository.findByUtenteIdAndStatoWithDetails(
+        return prenotazioneRepository.findFutureByUtenteIdAndStatoWithDetails(
             utenteId,
-            StatoPrenotazione.CONFERMATA
+            StatoPrenotazione.CONFERMATA,
+            LocalDate.now()
         );
     }
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findAnnullateByUtente(Long utenteId) {
-        return prenotazioneRepository.findByUtenteIdAndStatoWithDetails(
+        return prenotazioneRepository.findFutureByUtenteIdAndStatoWithDetails(
             utenteId,
-            StatoPrenotazione.ANNULLATA
+            StatoPrenotazione.ANNULLATA,
+            LocalDate.now()
         );
     }
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findConfermateByCane(Long caneId) {
-        return prenotazioneRepository.findByCaneIdAndStatoWithDetails(
+        return prenotazioneRepository.findFutureByCaneIdAndStatoWithDetails(
             caneId,
-            StatoPrenotazione.CONFERMATA
+            StatoPrenotazione.CONFERMATA,
+            LocalDate.now()
         );
     }
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findConfermateByToelettatore(Long toelettatoreId) {
-        return prenotazioneRepository.findByToelettatoreIdAndStatoWithDetails(
+        return prenotazioneRepository.findFutureByToelettatoreIdAndStatoWithDetails(
             toelettatoreId,
-            StatoPrenotazione.CONFERMATA
+            StatoPrenotazione.CONFERMATA,
+            LocalDate.now()
         );
     }
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findConfermate() {
-        return prenotazioneRepository.findAllByStatoWithDetails(StatoPrenotazione.CONFERMATA);
+        return prenotazioneRepository.findFutureByStatoWithDetails(
+            StatoPrenotazione.CONFERMATA,
+            LocalDate.now()
+        );
     }
 
     @Transactional(readOnly = true)
     public List<Prenotazione> findAnnullate() {
-        return prenotazioneRepository.findAllByStatoWithDetails(StatoPrenotazione.ANNULLATA);
+        return prenotazioneRepository.findFutureByStatoWithDetails(
+            StatoPrenotazione.ANNULLATA,
+            LocalDate.now()
+        );
     }
 
     @Transactional
@@ -110,6 +121,10 @@ public class PrenotazioneService {
 
         FasciaOraria fasciaOraria = fasciaOrariaRepository.findById(fasciaOrariaId)
             .orElseThrow(() -> new EntityNotFoundException("Fascia oraria non trovata: " + fasciaOrariaId));
+
+        if (fasciaOraria.getData().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Non puoi prenotare una fascia oraria gia passata.");
+        }
 
         Toelettatore toelettatore = fasciaOraria.getToelettatore();
         if (toelettatore == null) {

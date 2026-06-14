@@ -15,4 +15,6 @@ public interface ServizioRepository extends JpaRepository<Servizio, Long> {
     List<Servizio> findByDurataMinutiLessThanEqual(Integer durataMinuti);
 
     List<Servizio> findAllByOrderByNomeAsc();
+
+    boolean existsByNomeIgnoreCase(String nome);
 }

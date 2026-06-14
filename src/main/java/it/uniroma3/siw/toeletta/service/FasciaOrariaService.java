@@ -32,7 +32,24 @@ public class FasciaOrariaService {
 
     @Transactional(readOnly = true)
     public List<FasciaOraria> findAll() {
-        return fasciaOrariaRepository.findAllWithToelettatoreOrderByDataAscOraInizioAsc();
+        return fasciaOrariaRepository.findFutureWithToelettatoreOrderByDataAscOraInizioAsc(LocalDate.now());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FasciaOraria> findFiltrate(LocalDate data, Long toelettatoreId) {
+        if (data != null && toelettatoreId != null) {
+            return fasciaOrariaRepository.findByDataAndToelettatoreWithToelettatore(data, toelettatoreId);
+        }
+
+        if (data != null) {
+            return fasciaOrariaRepository.findByDataWithToelettatore(data);
+        }
+
+        if (toelettatoreId != null) {
+            return fasciaOrariaRepository.findFutureByToelettatoreWithToelettatore(toelettatoreId, LocalDate.now());
+        }
+
+        return findAll();
     }
 
     @Transactional
@@ -125,7 +142,7 @@ public class FasciaOrariaService {
 
     @Transactional(readOnly = true)
     public List<FasciaOraria> findDisponibili() {
-        return fasciaOrariaRepository.findDisponibiliAssegnateOrderByDataAscOraInizioAsc();
+        return fasciaOrariaRepository.findFutureDisponibiliAssegnateOrderByDataAscOraInizioAsc(LocalDate.now());
     }
 
     @Transactional(readOnly = true)
@@ -185,4 +202,6 @@ public class FasciaOrariaService {
 
         fascia.setToelettatore(toelettatore);
     }
+
+
 }

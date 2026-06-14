@@ -13,7 +13,7 @@ import it.uniroma3.siw.toeletta.model.TipoPelo;
 
 public interface CaneRepository extends JpaRepository<Cane, Long> {
 
-    List<Cane> findByProprietarioIdOrderByNomeAsc(Long proprietarioId);
+    List<Cane> findByProprietarioId(Long proprietarioId);
 
     List<Cane> findByNomeContainingIgnoreCase(String nome);
 

@@ -125,8 +125,14 @@ public class AdminController {
     }
 
     @GetMapping("/fasce-orarie")
-    public String elencoFasce(Model model) {
-        model.addAttribute("fasce", fasciaOrariaService.findAll());
+    public String elencoFasce(@RequestParam(required = false)
+                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+                              @RequestParam(required = false) Long toelettatoreId,
+                              Model model) {
+        model.addAttribute("fasce", fasciaOrariaService.findFiltrate(data, toelettatoreId));
+        model.addAttribute("toelettatori", toelettatoreService.findAttivi());
+        model.addAttribute("dataFiltro", data);
+        model.addAttribute("toelettatoreFiltroId", toelettatoreId);
         return "admin/fascia/elenco";
     }
 

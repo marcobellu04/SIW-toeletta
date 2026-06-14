@@ -20,6 +20,33 @@
     </div>
 
 
+
+    <form th:action="@{/admin/fasce-orarie}" method="get" class="form-card" style="margin-bottom: 1rem;">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="data">Giorno</label>
+                <input id="data" type="date" name="data" class="form-control" th:value="${dataFiltro}">
+            </div>
+
+            <div class="form-group">
+                <label for="toelettatoreId">Toelettatore</label>
+                <select id="toelettatoreId" name="toelettatoreId" class="form-control">
+                    <option value="">Tutti</option>
+                    <option th:each="t : ${toelettatori}"
+                            th:value="${t.id}"
+                            th:selected="${toelettatoreFiltroId != null and toelettatoreFiltroId == t.id}"
+                            th:text="${t.nome + ' ' + t.cognome}">
+                        Mario Rossi
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="action-group">
+            <button type="submit" class="btn btn-primary">Filtra</button>
+            <a th:href="@{/admin/fasce-orarie}" class="btn btn-secondary">Azzera</a>
+        </div>
+    </form>
     <div th:if="${#lists.isEmpty(fasce)}" class="empty-state">
         <p>Non ci sono ancora fasce orarie.</p>
     </div>

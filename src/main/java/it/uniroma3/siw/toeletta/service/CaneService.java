@@ -29,7 +29,7 @@ public class CaneService {
 
     @Transactional(readOnly = true)
     public List<Cane> findByProprietario(Long proprietarioId) {
-        return caneRepository.findByProprietarioIdOrderByNomeAsc(proprietarioId);
+        return caneRepository.findByProprietarioId(proprietarioId);
     }
 
     @Transactional

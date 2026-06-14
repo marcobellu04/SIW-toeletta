@@ -48,6 +48,8 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initData() {
         return args -> {
+            creaServiziMancanti();
+
             if (utenteRepository.count() > 0) {
                 return;
             }
@@ -92,30 +94,6 @@ public class DataInitializer {
             rex.setProprietario(mario);
             caneRepository.save(rex);
 
-            Servizio bagno = new Servizio();
-            bagno.setNome("Bagno completo");
-            bagno.setDescrizione("Lavaggio, asciugatura e spazzolatura.");
-            bagno.setDurataMinuti(60);
-            bagno.setPrezzoBase(new BigDecimal("35.00"));
-            bagno.setAttivo(true);
-            servizioRepository.save(bagno);
-
-            Servizio taglio = new Servizio();
-            taglio.setNome("Taglio pelo");
-            taglio.setDescrizione("Taglio e rifinitura del manto.");
-            taglio.setDurataMinuti(90);
-            taglio.setPrezzoBase(new BigDecimal("50.00"));
-            taglio.setAttivo(true);
-            servizioRepository.save(taglio);
-
-            Servizio unghie = new Servizio();
-            unghie.setNome("Taglio unghie");
-            unghie.setDescrizione("Accorciamento e limatura unghie.");
-            unghie.setDurataMinuti(20);
-            unghie.setPrezzoBase(new BigDecimal("12.00"));
-            unghie.setAttivo(true);
-            servizioRepository.save(unghie);
-
             Toelettatore giulia = new Toelettatore();
             giulia.setNome("Giulia");
             giulia.setCognome("Bianchi");
@@ -140,6 +118,59 @@ public class DataInitializer {
             creaFascia(luca, LocalDate.now().plusDays(3), LocalTime.of(9, 30), LocalTime.of(10, 30));
             creaFascia(luca, LocalDate.now().plusDays(3), LocalTime.of(16, 0), LocalTime.of(17, 0));
         };
+    }
+
+    private void creaServiziMancanti() {
+        creaServizioSeAssente(
+            "Bagno completo",
+            "Lavaggio, asciugatura e spazzolatura.",
+            60,
+            new BigDecimal("35.00")
+        );
+        creaServizioSeAssente(
+            "Taglio pelo",
+            "Taglio e rifinitura del manto.",
+            90,
+            new BigDecimal("50.00")
+        );
+        creaServizioSeAssente(
+            "Taglio unghie",
+            "Accorciamento e limatura unghie.",
+            20,
+            new BigDecimal("12.00")
+        );
+        creaServizioSeAssente(
+            "Stripping",
+            "Rimozione manuale del pelo morto per mantelli ruvidi.",
+            120,
+            new BigDecimal("65.00")
+        );
+        creaServizioSeAssente(
+            "Trattamento cute sensibile",
+            "Bagno delicato con prodotti specifici per cute sensibile.",
+            60,
+            new BigDecimal("40.00")
+        );
+        creaServizioSeAssente(
+            "Snodatura pelo",
+            "Rimozione nodi e spazzolatura approfondita del manto.",
+            90,
+            new BigDecimal("45.00")
+        );
+    }
+
+    private void creaServizioSeAssente(String nome, String descrizione, Integer durataMinuti, BigDecimal prezzoBase) {
+        if (servizioRepository.existsByNomeIgnoreCase(nome)) {
+            return;
+        }
+
+        Servizio servizio = new Servizio();
+        servizio.setNome(nome);
+        servizio.setDescrizione(descrizione);
+        servizio.setDurataMinuti(durataMinuti);
+        servizio.setPrezzoBase(prezzoBase);
+        servizio.setAttivo(true);
+        servizioRepository.save(servizio);
     }
 
     private void creaFascia(Toelettatore toelettatore, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
