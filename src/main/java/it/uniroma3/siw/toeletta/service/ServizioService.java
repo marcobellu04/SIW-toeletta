@@ -18,12 +18,12 @@ public class ServizioService {
 
     @Transactional(readOnly = true)
     public List<Servizio> findAll() {
-        return servizioRepository.findAllByOrderByNomeAsc();
+        return servizioRepository.findAll();
     }
 
     @Transactional(readOnly = true)
     public List<Servizio> findAttivi() {
-        return servizioRepository.findByAttivoTrueOrderByNomeAsc();
+        return servizioRepository.findByAttivoTrue();
     }
 
     @Transactional(readOnly = true)
